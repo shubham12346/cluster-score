@@ -1,0 +1,47 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment
+.env
+*.env
+.venv/
+venv/
+fastapi-env/
+
+# VSCode / IDE
+.vscode/
+.idea/
+*.swp
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Logs and coverage
+*.log
+*.out
+*.coverage
+htmlcov/
+coverage.xml
+
+# Test & debug artifacts
+*.pytest_cache/
+*.mypy_cache/
+
+# Uvicorn reload artifacts
+*.pid
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Pydantic models cache
+*.json
+
+# Compiled files
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
