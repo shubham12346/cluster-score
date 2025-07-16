@@ -1,4 +1,5 @@
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { ProcessingStatusType } from "../hooks/useFormData";
 
 const StatusMessage = ({ status }: any) => {
   const isError = status.toLowerCase().includes("error");
@@ -12,7 +13,7 @@ const StatusMessage = ({ status }: any) => {
       }`}
     >
       <div className="flex items-center">
-        {isError ? (
+        {status === ProcessingStatusType.ERROR ? (
           <AlertCircle className="text-red-500 mr-2" size={20} />
         ) : (
           <CheckCircle className="text-blue-500 mr-2" size={20} />

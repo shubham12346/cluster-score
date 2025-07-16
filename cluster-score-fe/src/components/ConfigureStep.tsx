@@ -9,7 +9,7 @@ const ConfigureStep = ({
   setCurrentStep,
   processSheet,
 }: any) => (
-  <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+  <div className=" bg-white rounded-lg shadow-lg p-8 space-y-6">
     <div className="flex items-center mb-6">
       <Settings className="mr-3 text-blue-500" size={24} />
       <h2 className="text-2xl font-semibold">Configure Processing</h2>

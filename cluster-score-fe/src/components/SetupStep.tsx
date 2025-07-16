@@ -6,7 +6,7 @@ const SetupStep = ({
   isLoading,
   fetchHeaders,
 }) => (
-  <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+  <div className="bg-white w-[50%] min-h-[500px] rounded-lg shadow-lg p-8 space-y-6 border-2 ">
     <div className="flex items-center mb-6">
       <FileText className="mr-3 text-blue-500" size={24} />
       <h2 className="text-2xl font-semibold">Sheet & Website Setup</h2>

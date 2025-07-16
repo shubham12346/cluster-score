@@ -4,16 +4,19 @@ import requests
 from app.core.config import settings
 
 def get_gemini_response(prompt: str) -> tuple[str, str]:
+    url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={settings.gemini_api_key}"
+    )
+
     headers = {
-        "Content-Type": "application/json",
-        "x-goog-api-key": settings.gemini_api_key
+        "Content-Type": "application/json"
     }
 
     body = {
         "contents": [{"parts": [{"text": prompt}]}]
     }
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"
+    # url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"
 
     res = requests.post(url, headers=headers, json=body)
 

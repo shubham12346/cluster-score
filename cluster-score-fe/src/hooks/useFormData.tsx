@@ -10,11 +10,18 @@ const initialForm = {
   llmPrompt: "Score the relevance for the company based on the description.",
 };
 
+export const ProcessingStatusType = {
+  IDLE: "idle",
+  PROCESSING: "processing",
+  ERROR: "error",
+} as const;
 export const useFormData = () => {
   const [formData, setFormData] = useState(initialForm);
   const [columnHeaders, setColumnHeaders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState("");
+  const [processingStatus, setProcessingStatus] = useState(
+    ProcessingStatusType.IDLE
+  );
   const [results, setResults] = useState([]);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -36,7 +43,7 @@ export const useFormData = () => {
     setFormData(initialForm);
     setColumnHeaders([]);
     setResults([]);
-    setProcessingStatus("");
+    setProcessingStatus(ProcessingStatusType.IDLE);
     setCurrentStep(1);
   };
 

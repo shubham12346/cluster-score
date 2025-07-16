@@ -5,8 +5,9 @@ import ConfigureStep from "../components/ConfigureStep";
 import ResultsStep from "../components/ResultStep";
 import StatusMessage from "../components/StatusMessage";
 
-import { useFormData } from "../hooks/useFormData";
+import { ProcessingStatusType, useFormData } from "../hooks/useFormData";
 import { fetchMockColumnHeaders, processSheetAPI } from "../services/api";
+import ProgressStatus from "../components/ProgressStatus";
 
 const GoogleSheetLLMFrontend = () => {
   const {
@@ -46,7 +47,7 @@ const GoogleSheetLLMFrontend = () => {
 
   const handleProcessSheet = async () => {
     setIsLoading(true);
-    setProcessingStatus("Processing rows...");
+    setProcessingStatus(ProcessingStatusType.PROCESSING);
     const sheetPayload = {
       spreadsheet_url: formData.googleSheetUrl,
       worksheet_name: formData.sheetName,
@@ -60,15 +61,15 @@ const GoogleSheetLLMFrontend = () => {
       setProcessingStatus("Processing completed successfully!");
       setCurrentStep(3);
     } catch (e) {
-      setProcessingStatus("Error: Failed to process sheet");
+      setProcessingStatus(ProcessingStatusType.ERROR);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="  min-h-screen w-[90vw] bg-gradient-to-br from-blue-50 to-indigo-100 p-6 mx-24 my-10">
+      <div className=" ">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -103,23 +104,33 @@ const GoogleSheetLLMFrontend = () => {
 
         {/* Step Views */}
         {currentStep === 1 && (
-          <SetupStep
-            formData={formData}
-            handleInputChange={handleInputChange}
-            isLoading={isLoading}
-            fetchHeaders={fetchHeaders}
-          />
+          <div className="flex justify-center  ">
+            <SetupStep
+              formData={formData}
+              handleInputChange={handleInputChange}
+              isLoading={isLoading}
+              fetchHeaders={fetchHeaders}
+            />
+          </div>
         )}
         {currentStep === 2 && (
-          <ConfigureStep
-            formData={formData}
-            columnHeaders={columnHeaders}
-            handleColumnSelection={handleColumnSelection}
-            handleInputChange={handleInputChange}
-            isLoading={isLoading}
-            setCurrentStep={setCurrentStep}
-            processSheet={handleProcessSheet}
-          />
+          <div className="flex  justify-center">
+            <div className="w-2/5 pt-10">
+              <ConfigureStep
+                formData={formData}
+                columnHeaders={columnHeaders}
+                handleColumnSelection={handleColumnSelection}
+                handleInputChange={handleInputChange}
+                isLoading={isLoading}
+                setCurrentStep={setCurrentStep}
+                processSheet={handleProcessSheet}
+              />
+            </div>
+
+            <div className="w-2/5">
+              <ProgressStatus processingStatus={processingStatus} />
+            </div>
+          </div>
         )}
         {currentStep === 3 && (
           <ResultsStep
@@ -130,7 +141,9 @@ const GoogleSheetLLMFrontend = () => {
         )}
 
         {/* Status Message */}
-        {processingStatus && <StatusMessage status={processingStatus} />}
+        {processingStatus != ProcessingStatusType.IDLE && (
+          <StatusMessage status={processingStatus} />
+        )}
       </div>
     </div>
   );

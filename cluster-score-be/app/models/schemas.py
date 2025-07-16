@@ -1,5 +1,6 @@
+
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class SheetScoringRequest(BaseModel):
     spreadsheet_url: str
@@ -7,6 +8,7 @@ class SheetScoringRequest(BaseModel):
     input_column: str
     output_columns: List[str]
     prompt_template: str
+    webhook_url: Optional[str] = None  # Optional for future
 
 
 class SheetHeaderRequest(BaseModel):
