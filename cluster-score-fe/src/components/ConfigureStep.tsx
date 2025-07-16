@@ -8,6 +8,7 @@ const ConfigureStep = ({
   isLoading,
   setCurrentStep,
   processSheet,
+  isProcessing,
 }: any) => (
   <div className=" bg-white rounded-lg shadow-lg p-8 space-y-6">
     <div className="flex items-center mb-6">
@@ -81,17 +82,14 @@ const ConfigureStep = ({
     <div className="flex space-x-4">
       <button
         onClick={() => setCurrentStep(1)}
+        disabled={isProcessing}
         className="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600"
       >
         Back
       </button>
       <button
         onClick={processSheet}
-        disabled={
-          formData.inputColumns.length === 0 ||
-          formData.outputColumns.length === 0 ||
-          isLoading
-        }
+        disabled={isProcessing}
         className="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 disabled:bg-gray-400"
       >
         {isLoading ? "Processing..." : "Process Sheet"}

@@ -1,8 +1,11 @@
 import { ProcessingStatusType } from "../hooks/useFormData";
 import { useProgressPolling } from "../hooks/useProgressPolling";
 
-const ProgressStatus = ({ processingStatus }) => {
-  const { progress, loading } = useProgressPolling(processingStatus);
+const ProgressStatus = ({ processingStatus, handleProcessSheetStatus }) => {
+  const { progress, loading } = useProgressPolling({
+    processingStatus,
+    onComplete: handleProcessSheetStatus,
+  });
   console.log("Progress data in ProgressStatus:", progress);
 
   if (
@@ -30,9 +33,11 @@ const ProgressStatus = ({ processingStatus }) => {
   return (
     <div className="mx-4">
       <h3 className="font-bold mb-6 text-4xl text-center text-gray-800">
-        Processing Progress
+        {processingStatus === ProcessingStatusType.PROCESSING
+          ? "Processing Progress"
+          : "Processing Completed"}
       </h3>
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 transition-all duration-500 ease-in-out">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 transition-all duration-500 ease-in-out  max-h-screen overflow-y-scroll">
         {Object.entries(progress)
           .sort(([, a], [, b]) => {
             const rowA =

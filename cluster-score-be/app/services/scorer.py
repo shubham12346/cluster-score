@@ -4,9 +4,13 @@ def process_sheet(sheet_url: str, worksheet_name: str, input_column: str,
     import gspread
     import time
     import random
+    import json
     from app.core.config import settings
     from app.services.llm_prompt import get_gemini_response
-    from app.core.redis import save_progress
+    from app.core.redis import save_progress, r  # ⬅️ make sure to import r here
+
+    # Mark as processing started
+    r.hset("progress", "status", json.dumps({"status": "processing"}))
 
     creds_dict = settings.get_google_creds_dict()
     gc = gspread.service_account_from_dict(creds_dict)
@@ -28,56 +32,55 @@ def process_sheet(sheet_url: str, worksheet_name: str, input_column: str,
     reason_col_idx = col_indices[output_columns[1]]
 
     data = worksheet.get_all_records(expected_headers=headers)
-    batch_size = 50
-    total_rows = min(20, len(data))
-    processed_count = 0
+    limited_data = data[:15]  # ✅ Only take first 15 rows
 
-    print(f"[Processor] Starting processing {total_rows} rows...")
+    print(f"[Processor] Starting processing first {len(limited_data)} rows...")
 
-    for batch_start in range(0, total_rows, batch_size):
-        batch = data[batch_start: batch_start + batch_size]
-        updates = []
+    updates = []
 
-        for i, row in enumerate(batch):
-            row_number = batch_start + i + 2
-            prompt_input = row.get(input_column, "").strip()
+    for i, row in enumerate(limited_data):
+        row_number = i + 2  # +2 to skip header (row 1) and be 1-indexed
 
-            if not prompt_input:
-                continue
+        prompt_input = str(row.get(input_column, "")).strip()
+        if not prompt_input:
+            continue
 
-            prompt = f"{prompt_template} {prompt_input}"
-            print(f"[Row {row_number}] Prompt: {prompt}")
-
-            try:
-                score, reason = get_gemini_response(prompt)
-                status = "success"
-            except Exception as e:
-                score, reason = "Error", str(e)
-                status = "error"
-
-            updates.append((row_number, score_col_idx, score))
-            updates.append((row_number, reason_col_idx, reason))
-
-            # ✅ Save to Redis
-            save_progress(row_number, {
-                "row": row_number,
-                "keyword": prompt_input,
-                "score": score,
-                "reason": reason,
-                "status": status
-            })
-
-            print(f"[Row {row_number}] ✅ Processed → {status.upper()}")
+        prompt = f"{prompt_template} {prompt_input}"
+        print(f"[Row {row_number}] Prompt: {prompt}")
 
         try:
-            _batch_update_cells(worksheet, updates)
+            score, reason = get_gemini_response(prompt)
+            status = "success"
         except Exception as e:
-            print(f"⚠️ Error during batch update: {e}")
-            _retry_with_backoff(_batch_update_cells, worksheet, updates)
+            score, reason = "Error", str(e)
+            status = "error"
 
-        processed_count += len(batch)
+        updates.append((row_number, score_col_idx, score))
+        updates.append((row_number, reason_col_idx, reason))
 
-    return processed_count
+        # ✅ Save to Redis
+        save_progress(row_number, {
+            "row": row_number,
+            "keyword": prompt_input,
+            "score": score,
+            "reason": reason,
+            "status": status
+        })
+
+        print(f"[Row {row_number}] ✅ Processed → {status.upper()}")
+
+    try:
+        _batch_update_cells(worksheet, updates)
+    except Exception as e:
+        print(f"⚠️ Error during batch update: {e}")
+        _retry_with_backoff(_batch_update_cells, worksheet, updates)
+
+    # ✅ Now mark as completed (after all rows and batch update)
+    r.hset("progress", "status", json.dumps({"status": "completed"}))
+
+    return len(limited_data)
+
+
 
 
 def _batch_update_cells(worksheet, updates):

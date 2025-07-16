@@ -1,4 +1,3 @@
-
 import redis
 import json
 
@@ -12,7 +11,13 @@ def save_progress(row, data):
 def get_all_progress():
     all_data = r.hgetall("progress")
     print(f"[Redis] Fetched all progress: {all_data}")
-    return {k: json.loads(v) for k, v in all_data.items()}
+    parsed_data = {}
+    for k, v in all_data.items():
+        try:
+            parsed_data[k] = json.loads(v)
+        except json.JSONDecodeError:
+            parsed_data[k] = v  # fallback if not JSON (unlikely)
+    return parsed_data
 
 def clear_progress():
     print("[Redis] Clearing all progress")

@@ -19,7 +19,7 @@ export const useFormData = () => {
   const [formData, setFormData] = useState(initialForm);
   const [columnHeaders, setColumnHeaders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState(
+  const [processingStatus, setProcessingStatus] = useState<string>(
     ProcessingStatusType.IDLE
   );
   const [results, setResults] = useState([]);

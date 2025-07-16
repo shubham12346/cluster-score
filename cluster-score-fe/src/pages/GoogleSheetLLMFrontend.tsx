@@ -8,8 +8,10 @@ import StatusMessage from "../components/StatusMessage";
 import { ProcessingStatusType, useFormData } from "../hooks/useFormData";
 import { fetchMockColumnHeaders, processSheetAPI } from "../services/api";
 import ProgressStatus from "../components/ProgressStatus";
+import ConfigurationSummary from "../components/ConfigurationSummary";
 
 const GoogleSheetLLMFrontend = () => {
+  const [editMode, setEditMode] = React.useState(false);
   const {
     formData,
     handleInputChange,
@@ -37,6 +39,7 @@ const GoogleSheetLLMFrontend = () => {
       console.log("get-headers", headers);
       const validHeader = headers?.headers.filter((item) => item?.length > 2);
       setColumnHeaders(validHeader || []);
+      setResults([]);
       setCurrentStep(2);
     } catch {
       setProcessingStatus("Error: Failed to fetch column headers");
@@ -57,14 +60,17 @@ const GoogleSheetLLMFrontend = () => {
     };
     try {
       const result = await processSheetAPI(sheetPayload);
-      setResults(result);
-      setProcessingStatus("Processing completed successfully!");
-      setCurrentStep(3);
+      setResults([]);
+      setProcessingStatus(ProcessingStatusType.PROCESSING);
     } catch (e) {
       setProcessingStatus(ProcessingStatusType.ERROR);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleProcessSheetStatus = () => {
+    setProcessingStatus(ProcessingStatusType.IDLE);
   };
 
   return (
@@ -83,14 +89,14 @@ const GoogleSheetLLMFrontend = () => {
         {/* Step Indicator */}
         <div className="flex justify-center items-center mb-8">
           <div className="flex items-center space-x-4">
-            {[1, 2, 3].map((step, index) => (
+            {[1, 2].map((step, index) => (
               <React.Fragment key={step}>
                 <StepIndicator
                   step={step}
                   isActive={currentStep === step}
                   isCompleted={currentStep > step}
                 />
-                {step < 3 && (
+                {step < 2 && (
                   <div
                     className={`h-1 w-16 ${
                       currentStep > step ? "bg-green-500" : "bg-gray-300"
@@ -101,7 +107,10 @@ const GoogleSheetLLMFrontend = () => {
             ))}
           </div>
         </div>
-
+        {/* Status Message */}
+        {processingStatus != ProcessingStatusType.IDLE && (
+          <StatusMessage status={processingStatus} />
+        )}
         {/* Step Views */}
         {currentStep === 1 && (
           <div className="flex justify-center  ">
@@ -115,20 +124,38 @@ const GoogleSheetLLMFrontend = () => {
         )}
         {currentStep === 2 && (
           <div className="flex  justify-center">
-            <div className="w-2/5 pt-10">
-              <ConfigureStep
-                formData={formData}
-                columnHeaders={columnHeaders}
-                handleColumnSelection={handleColumnSelection}
-                handleInputChange={handleInputChange}
-                isLoading={isLoading}
-                setCurrentStep={setCurrentStep}
-                processSheet={handleProcessSheet}
-              />
+            <div className="w-2/5 pt-10 mt-10">
+              {editMode ? (
+                <ConfigureStep
+                  formData={formData}
+                  columnHeaders={columnHeaders}
+                  handleColumnSelection={handleColumnSelection}
+                  handleInputChange={handleInputChange}
+                  isLoading={
+                    processingStatus === ProcessingStatusType.PROCESSING
+                  }
+                  setCurrentStep={setCurrentStep}
+                  processSheet={handleProcessSheet}
+                  isProcessing={
+                    processingStatus === ProcessingStatusType.PROCESSING
+                  }
+                />
+              ) : (
+                <ConfigurationSummary
+                  formData={formData}
+                  isProcessing={
+                    processingStatus === ProcessingStatusType.PROCESSING
+                  }
+                  onEditClick={() => setEditMode(true)}
+                />
+              )}
             </div>
 
-            <div className="w-2/5">
-              <ProgressStatus processingStatus={processingStatus} />
+            <div className="w-2/5 mt-3">
+              <ProgressStatus
+                processingStatus={processingStatus}
+                handleProcessSheetStatus={handleProcessSheetStatus}
+              />
             </div>
           </div>
         )}
@@ -138,11 +165,6 @@ const GoogleSheetLLMFrontend = () => {
             results={results}
             resetForm={resetForm}
           />
-        )}
-
-        {/* Status Message */}
-        {processingStatus != ProcessingStatusType.IDLE && (
-          <StatusMessage status={processingStatus} />
         )}
       </div>
     </div>
